@@ -1,12 +1,16 @@
 import React from 'react';
 import { Menu, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {useSelector} from 'react-redux';
 
 function Header({ isCollapsed, setIsCollapsed }) {
   const handleToggle = () => {
     console.log(isCollapsed)
     setIsCollapsed(!isCollapsed);
   };
+
+  const user = useSelector((state) => state.user.staff_name);
+
   return (
     <header className="flex items-center justify-between bg-white shadow-md p-4">
       {/* Left Side - Menu Icon */}
@@ -32,7 +36,7 @@ function Header({ isCollapsed, setIsCollapsed }) {
 
       {/* Right Side - Welcome Message and Profile Icon */}
       <div className="flex items-center space-x-3">
-        <span className="text-gray-700 font-semibold">Welcome, Lumesh</span>
+        <span className="text-gray-700 font-semibold">Welcome, {user}</span>
         <div className="w-12 h-12 flex items-center justify-center">
           <img src="assets/images/user.png" alt="Login" />
         </div>
