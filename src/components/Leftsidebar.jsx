@@ -1,9 +1,17 @@
 import React from 'react';
 import { FileChartColumnIncreasing, LayoutDashboard, LogOut, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
+import { useDispatch } from "react-redux";
+import { logout } from './redux/userSlice';
+import Cookies from "js-cookie";
 function Leftsidebar({ isCollapsed, setIsCollapsed }) {
-  
+  const dispatch = useDispatch();
+  const handleLogout = () => {
+    Cookies.remove("access-token");
+    dispatch(logout());
+
+    
+  };
   return (
     <aside
       className={`bg-white border-r border-gray-200 ${isCollapsed ? 'w-16' : 'w-56'
@@ -24,11 +32,11 @@ function Leftsidebar({ isCollapsed, setIsCollapsed }) {
 
           {!isCollapsed && <span className="text-black font-medium text-base">Production</span>}
         </Link>
-        <Link to="/" className="flex items-center space-x-5 cursor-pointer hover:bg-gray-100 p-2 rounded">
+        <a onClick={() => handleLogout()} className="flex items-center space-x-5 cursor-pointer hover:bg-gray-100 p-2 rounded">
           <LogOut className="w-5 h-5 text-black" />
 
           {!isCollapsed && <span className="text-black font-medium text-base">Logout</span>}
-        </Link>
+        </a>
       </ul>
     </aside>
   );
