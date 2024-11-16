@@ -16,7 +16,7 @@ function App() {
           <Route path="/production" element={<ProductionScreen />} />
         </Route>
         <Route path="*" element={<NotfoundScreen />} />
-        <Route path="/login" element={<LoginScreen />} />
+        {/* <Route path="/login" element={<LoginScreen />} /> */}
       </Routes>
     </>
   )

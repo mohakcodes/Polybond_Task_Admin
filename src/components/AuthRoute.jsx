@@ -8,7 +8,7 @@ const AuthRoute = () => {
   const userId = useSelector((state) => state.user._id);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   return <>
-    <Header isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
+  {userId && <Header isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />}
     {userId ? <div className='flex'>
       <Leftsidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
       <Outlet />
