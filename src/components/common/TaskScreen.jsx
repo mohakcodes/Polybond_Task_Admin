@@ -87,8 +87,14 @@ function TaskScreen() {
 
             <h3 className="font-semibold text-lg mb-2">I am Title</h3>
             <p className="text-sm text-gray-600 mb-2">
-              Make dribbble shots for studio portfolio needs and your own
-              portfolio.
+              {
+                task.task_descriptions.map((description, index) => () => (
+                  <span key={index}>
+                    Hii .
+                    {/* {index < task.task_descriptions.length - 1 && ' & '} */}
+                  </span>
+                ))
+              }
             </p> <hr />
             <div className="text-sm text-gray-500 flex justify-between mt-2 mb-1">
               <span>Assign</span>
