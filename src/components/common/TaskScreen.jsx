@@ -5,7 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import api from "../axios/api.js";
 
-import Select from "react-select";
+import Select from 'react-select' 
 
 function TaskScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,82 +24,27 @@ function TaskScreen() {
   const closeModal = () => setIsModalOpen(false);
 
   const getUsers = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}staff/get`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("access_token")}`,
-          },
-        }
-      );
+    try{
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}staff/get`,{
+        headers: {
+          Authorization: `Bearer ${Cookies.get("access_token")}`,
+        },
+      });
       setCurrentUsers(response.data);
-      const allUsers = response.data.map((user) => ({
-        value: user._id,
-        label: user.staff_name,
-      }));
+      const allUsers = response.data.map((user)=>({
+          value: user._id,
+          label: user.staff_name
+      }))
       setOptions(allUsers);
-    } catch (error) {
-      console.log(error);
+    }
+    catch(error){
+      console.log(error)
     }
   };
 
   const getTasks = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}task_tbl/pending-task`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("access_token")}`,
-          },
-        }
-      );
-      setTasks(response.data.data);
-      console.log(response.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getUsers();
-    getTasks();
-  }, []);
-
-  const handleUserChange = (selectedOptions) => {
-    setSelectedUsers(selectedOptions || []);
-  };
-
-  const handleAddDescription = () => {
-    setTaskDescriptions([...taskDescriptions, currentDescription]);
-    setCurrentDescription("");
-  }
-
-  const handleRemoveDescription = (index) => {
-    const newDescriptions = [...taskDescriptions];
-    newDescriptions.splice(index, 1);
-    setTaskDescriptions(newDescriptions);
-  }
-
-  const handleSubmit = async (e) => {
-    console.log("Submit");
-    e.preventDefault();
-    if(!assignedDate || !dueDate || !selectedUsers || !taskTitle){
-      alert("All fields are required");
-      return;
-    }
-    const assignedTo = selectedUsers.map((user) => user.value);
-    const startDate = new Date(assignedDate).toISOString();
-    const endDate = new Date(dueDate).toISOString();
-
     try{
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}task_tbl/add`, {
-        task_assign_to: assignedTo.join(','),
-        task_title: taskTitle,
-        task_assign_date: startDate,
-        task_description: taskDescriptions.join(','),
-        task_due_date: endDate,
-      },{
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}task_tbl/pending-task`,{
         headers: {
           Authorization: `Bearer ${Cookies.get("access_token")}`,
         },
@@ -115,9 +60,14 @@ function TaskScreen() {
       console.log("RES",response.data);
     }
     catch(error){
-      console.log(error);
+      console.log(error)
     }
-  };
+  }
+
+  useEffect(()=>{
+    getUsers();
+    getTasks();
+  },[])
 
   return (
     <div className="overflow-y-scroll h-[calc(100vh-80px)] w-full p-4 bg-gray-100">
@@ -229,19 +179,18 @@ function TaskScreen() {
                 })}
               </span>
               <span
-                className={`inline-block px-3 py-1 rounded text-xs font-semibold ${
-                  task.task_status % 3 === 0
-                    ? "bg-green-100 text-green-600"
-                    : task.task_status % 3 === 1
+                className={`inline-block px-3 py-1 rounded text-xs font-semibold ${task.task_status % 3 === 0
+                  ? "bg-green-100 text-green-600"
+                  : task.task_status % 3 === 1
                     ? "bg-yellow-100 text-yellow-600"
                     : "bg-red-100 text-red-600"
-                }`}
+                  }`}
               >
                 {task.task_status % 3 === 0
                   ? "Success"
                   : task.task_status % 3 === 1
-                  ? "Pending"
-                  : "Incomplete"}
+                    ? "Pending"
+                    : "Incomplete"}
               </span>
             </div>
             <h3 className="font-semibold text-lg mb-2">{task.task_title}</h3>
@@ -321,7 +270,9 @@ function TaskScreen() {
 
               {/* Select User */}
               <div>
-                <label className="block text-sm font-semibold mb-1">
+                <label 
+                  className="block text-sm font-semibold mb-1"
+                >
                   Select User
                 </label>
                 <Select
@@ -396,8 +347,7 @@ function TaskScreen() {
 
               {/* Buttons */}
               <div className="flex justify-end space-x-3">
-                <div></div>
-                <button
+                 <button
                   type="submit"
                   className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600"
                 >
