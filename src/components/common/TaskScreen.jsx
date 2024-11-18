@@ -170,28 +170,39 @@ function TaskScreen() {
             key={index}
             className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow"
           >
-            <div className="text-sm text-gray-500 flex justify-between">
-              <span>
-                {new Date(task.task_assign_date).toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </span>
-              <span
-                className={`inline-block px-3 py-1 rounded text-xs font-semibold ${task.task_status % 3 === 0
-                  ? "bg-green-100 text-green-600"
-                  : task.task_status % 3 === 1
-                    ? "bg-yellow-100 text-yellow-600"
-                    : "bg-red-100 text-red-600"
+            <div className="text-sm text-gray-500 flex justify-between items-center">
+              <div>
+                <span className="text-base">
+                  {new Date(task.task_assign_date).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`inline-block px-3 py-1 rounded text-xs font-semibold ${
+                    task.task_status % 3 === 0
+                      ? "bg-green-100 text-green-600"
+                      : task.task_status % 3 === 1
+                      ? "bg-yellow-100 text-yellow-600"
+                      : "bg-red-100 text-red-600"
                   }`}
-              >
-                {task.task_status % 3 === 0
-                  ? "Success"
-                  : task.task_status % 3 === 1
+                >
+                  {task.task_status % 3 === 0
+                    ? "Success"
+                    : task.task_status % 3 === 1
                     ? "Pending"
                     : "Incomplete"}
-              </span>
+                </span>
+                <span
+                  onClick={() => handleDelete(task._id)}
+                  className={`inline-block px-2 py-2 rounded-full text-xs font-semibold bg-red-100 text-red-600 cursor-pointer`}
+                >
+                 <Trash2 color="red" height={18} width={18}/>
+                </span>
+              </div>
             </div>
             <h3 className="font-semibold text-lg mb-2">{task.task_title}</h3>
             <p className="text-sm text-gray-600 mb-2">
@@ -355,7 +366,7 @@ function TaskScreen() {
                 </button>
                 <button
                   type="button"
-                  onClick={closeModal}
+                  onClick={handleCancel}
                   className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600"
                 >
                   Cancel
