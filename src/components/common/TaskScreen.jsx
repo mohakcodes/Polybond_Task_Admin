@@ -1,11 +1,58 @@
 import { X } from "lucide-react";
 import React, { useState } from "react";
+import { useEffect } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
+
+import Select from 'react-select' 
 
 function TaskScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentUsers, setCurrentUsers] = useState([]);
+  const [options, setOptions] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  const getUsers = async () => {
+    try{
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}staff/get`,{
+        headers: {
+          Authorization: `Bearer ${Cookies.get("access_token")}`,
+        },
+      });
+      setCurrentUsers(response.data);
+      const allUsers = response.data.map((user)=>({
+          value: user._id,
+          label: user.staff_name
+      }))
+      setOptions(allUsers);
+    }
+    catch(error){
+      console.log(error)
+    }
+  };
+
+  const getTasks = async () => {
+    try{
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}task_tbl/pending-task`,{
+        headers: {
+          Authorization: `Bearer ${Cookies.get("access_token")}`,
+        },
+      });
+      setTasks(response.data.data);
+      console.log(response.data.data);
+    }
+    catch(error){
+      console.log(error)
+    }
+  }
+
+  useEffect(()=>{
+    getUsers();
+    getTasks();
+  },[])
 
   return (
     <div className="overflow-y-scroll h-[calc(100vh-80px)] w-full p-4 bg-gray-100">
@@ -62,47 +109,65 @@ function TaskScreen() {
 
       {/* Task Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(8)].map((_, index) => (
+        {tasks.map((task, index) => (
           <div
             key={index}
             className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow"
           >
             <div className="text-sm text-gray-500 flex justify-between">
-              <span>14 Nov 2024</span>
+              <span>
+                {new Date(task.task_assign_date).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
               <span
-                className={`inline-block px-3 py-1 rounded text-xs font-semibold ${index % 3 === 0
-                  ? "bg-green-100 text-green-600"
-                  : index % 3 === 1
+                className={`inline-block px-3 py-1 rounded text-xs font-semibold ${
+                  task.task_status % 3 === 0
+                    ? "bg-green-100 text-green-600"
+                    : task.task_status % 3 === 1
                     ? "bg-yellow-100 text-yellow-600"
                     : "bg-red-100 text-red-600"
-                  }`}
+                }`}
               >
-                {index % 3 === 0
+                {task.task_status % 3 === 0
                   ? "Success"
-                  : index % 3 === 1
-                    ? "Pending"
-                    : "Incomplete"}
+                  : task.task_status % 3 === 1
+                  ? "Pending"
+                  : "Incomplete"}
               </span>
             </div>
-
-            <h3 className="font-semibold text-lg mb-2">I am Title</h3>
+            <h3 className="font-semibold text-lg mb-2">{task.task_title}</h3>
             <p className="text-sm text-gray-600 mb-2">
-              {
-                task.task_descriptions.map((description, index) => () => (
-                  <span key={index}>
-                    Hii .
-                    {/* {index < task.task_descriptions.length - 1 && ' & '} */}
-                  </span>
-                ))
-              }
-            </p> <hr />
+              {task.task_descriptions.map((description, index) => (
+                <span key={index} className="block mb-2">
+                  {description.desc_name}
+                </span>
+              ))}
+            </p>
+            <hr />
             <div className="text-sm text-gray-500 flex justify-between mt-2 mb-1">
               <span>Assign</span>
               <span>Deadline</span>
             </div>
             <div className="text-sm text-gray-500 flex justify-between font-semibold">
-              <span>Lumesh & 1</span>
-              <span>15 Nov 2024</span>
+              <span>
+                {task.assignToNames &&
+                  task.assignToNames.map((name, index) => (
+                    <span key={index}>
+                      {name}
+                      {index < task.assignToNames.length - 1 && ' & '}
+                    </span>
+                  ))}
+              </span>
+              <span className="text-right">
+                {new Date(task.task_due_date).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
             </div>
 
           </div>
@@ -146,14 +211,18 @@ function TaskScreen() {
 
               {/* Select User */}
               <div>
-                <label className="block text-sm font-semibold mb-1">
+                <label 
+                  className="block text-sm font-semibold mb-1"
+                >
                   Select User
                 </label>
-                <select className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200">
-                  <option>Choose User</option>
-                  <option>User 1</option>
-                  <option>User 2</option>
-                </select>
+                <Select
+                  isMulti
+                  name="colors"
+                  options={options}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                />
               </div>
 
               {/* Task Title */}
