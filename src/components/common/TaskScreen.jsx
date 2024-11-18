@@ -1,11 +1,11 @@
-import { Plus, X } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import React, { useState } from "react";
 import { useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import api from "../axios/api.js";
-
-import Select from 'react-select' 
+import Swal from "sweetalert2";
+import Select from "react-select";
 
 function TaskScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,50 +24,149 @@ function TaskScreen() {
   const closeModal = () => setIsModalOpen(false);
 
   const getUsers = async () => {
-    try{
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}staff/get`,{
-        headers: {
-          Authorization: `Bearer ${Cookies.get("access_token")}`,
-        },
-      });
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}staff/get`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        }
+      );
       setCurrentUsers(response.data);
-      const allUsers = response.data.map((user)=>({
-          value: user._id,
-          label: user.staff_name
-      }))
+      const allUsers = response.data.map((user) => ({
+        value: user._id,
+        label: user.staff_name,
+      }));
       setOptions(allUsers);
-    }
-    catch(error){
-      console.log(error)
+    } catch (error) {
+      console.log(error);
     }
   };
 
   const getTasks = async () => {
-    try{
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}task_tbl/pending-task`,{
-        headers: {
-          Authorization: `Bearer ${Cookies.get("access_token")}`,
-        },
-        withCredentials: true,
-      })
-      // const response = await api.post("task_tbl/add", {
-      //   task_assign_to: assignedTo.join(','),
-      //   task_title: taskTitle,
-      //   task_assign_date: startDate,
-      //   task_description: taskDescriptions.join(','),
-      //   task_due_date: endDate,
-      // })
-      console.log("RES",response.data);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}task_tbl/pending-task`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        }
+      );
+      setTasks(response.data.data);
+      console.log(response.data.data);
+    } catch (error) {
+      console.log(error);
     }
-    catch(error){
-      console.log(error)
-    }
-  }
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     getUsers();
     getTasks();
-  },[])
+  }, []);
+
+  const handleUserChange = (selectedOptions) => {
+    setSelectedUsers(selectedOptions || []);
+  };
+
+  const handleAddDescription = () => {
+    setTaskDescriptions([...taskDescriptions, currentDescription]);
+    setCurrentDescription("");
+  };
+
+  const handleRemoveDescription = (index) => {
+    const newDescriptions = [...taskDescriptions];
+    newDescriptions.splice(index, 1);
+    setTaskDescriptions(newDescriptions);
+  };
+
+  const handleDelete = async (id) => {
+    const userConfirmed = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to delete this task? This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+    });
+
+    if (userConfirmed.isConfirmed) {
+        try {
+            const response = await api.delete(`task_tbl/delete/${id}`);
+            console.log("Task deleted successfully:", response.data);
+            await Swal.fire({
+              title: "Deleted!",
+              text: "Your task has been deleted successfully.",
+              icon: "success",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+            getTasks(); // Refresh the task list
+        } 
+        catch (error) {
+            console.error("Error deleting task:", error);
+            Swal.fire(
+                "Error!",
+                "An error occurred while deleting the task. Please try again.",
+                "error"
+            );
+        }
+    }
+};
+
+
+  const handleSubmit = async (e) => {
+    console.log("Submit");
+    e.preventDefault();
+    if (!assignedDate || !dueDate || !selectedUsers || !taskTitle) {
+      alert("All fields are required");
+      return;
+    }
+    const assignedTo = selectedUsers.map((user) => user.value);
+    const startDate = new Date(assignedDate).toISOString();
+    const endDate = new Date(dueDate).toISOString();
+
+    try {
+        const response = await api.post("task_tbl/add", {
+        task_assign_to: assignedTo.join(","),
+        task_title: taskTitle,
+        task_assign_date: startDate,
+        task_description: taskDescriptions.join(","),
+        task_due_date: endDate,
+      });
+      console.log("RES", response.data);
+      closeModal();
+      getTasks();
+      setAssignedDate("");
+      setDueDate("");
+      setSelectedUsers([]);
+      setTaskTitle("");
+      setTaskDescriptions([]);
+      await Swal.fire({
+        title: "Task Added!",
+        text: "Task has been added successfully.",
+        icon: "success",
+        timer: 1000,
+        showConfirmButton: false,
+      });
+    
+    } 
+    catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleCancel = () => {
+    setAssignedDate("");
+    setDueDate("");
+    setSelectedUsers([]);
+    setTaskTitle("");
+    setTaskDescriptions([]);
+    closeModal();
+  }
 
   return (
     <div className="overflow-y-scroll h-[calc(100vh-80px)] w-full p-4 bg-gray-100">
@@ -89,9 +188,7 @@ function TaskScreen() {
             <img src="/assets/images/task.png" alt="" height="32" width="32" />
           </div>
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-blue-600">
-              {tasks.length}
-            </h2>
+            <h2 className="text-3xl font-bold text-blue-600">{tasks.length}</h2>
             <p className="text-base text-gray-500 font-semibold">Total Task</p>
           </div>
         </div>
@@ -108,9 +205,7 @@ function TaskScreen() {
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-bold text-green-600">
-              {
-                tasks.filter((task) => task.task_status % 3 === 0).length
-              }
+              {tasks.filter((task) => task.task_status % 3 === 0).length}
             </h2>
             <p className="text-base text-gray-500 font-semibold">
               Complete Task
@@ -130,9 +225,7 @@ function TaskScreen() {
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-bold text-yellow-600">
-              {
-                tasks.filter((task) => task.task_status % 3 === 1).length
-              }
+              {tasks.filter((task) => task.task_status % 3 === 1).length}
             </h2>
             <p className="text-base text-gray-500 font-semibold">
               Pending Task
@@ -152,9 +245,7 @@ function TaskScreen() {
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-bold text-red-600">
-              {
-                tasks.filter((task) => task.task_status % 3 === 2).length
-              }
+              {tasks.filter((task) => task.task_status % 3 === 2).length}
             </h2>
             <p className="text-base text-gray-500 font-semibold">
               Incomplete Task
@@ -281,9 +372,7 @@ function TaskScreen() {
 
               {/* Select User */}
               <div>
-                <label 
-                  className="block text-sm font-semibold mb-1"
-                >
+                <label className="block text-sm font-semibold mb-1">
                   Select User
                 </label>
                 <Select
@@ -316,13 +405,12 @@ function TaskScreen() {
                   Description
                 </label>
                 <div className="relative w-full">
-                  <input 
+                  <input
                     placeholder="Task Description"
                     value={currentDescription}
                     onChange={(e) => setCurrentDescription(e.target.value)}
                     className="border-none rounded px-3 py-2 outline-none bg-gray-100 w-[90%] mt-1"
-                  >
-                  </input>
+                  ></input>
                   <div className="w-[10%]">
                     <button
                       onClick={handleAddDescription}
@@ -336,15 +424,15 @@ function TaskScreen() {
                 <hr className="border-t-1 my-4 border-gray-800" />
                 <div className="p-2 h-24 overflow-y-auto border border-gray-300 rounded-md">
                   {taskDescriptions.map((description, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="flex justify-between items-start px-1 py-1 space-x-2"
                     >
                       <p className="text-base text-gray-900 break-words w-[90%]">
                         {description}
-                        <hr className="mt-2"/>
+                        <hr className="mt-2" />
                       </p>
-                      <button 
+                      <button
                         onClick={handleRemoveDescription}
                         type="button"
                         className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 flex items-center justify-center"
@@ -358,7 +446,8 @@ function TaskScreen() {
 
               {/* Buttons */}
               <div className="flex justify-end space-x-3">
-                 <button
+                <div></div>
+                <button
                   type="submit"
                   className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600"
                 >
