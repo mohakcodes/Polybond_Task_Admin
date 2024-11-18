@@ -1,64 +1,135 @@
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import React, { useState } from "react";
 import { useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import api from "../axios/api.js";
 
-import Select from 'react-select' 
+import Select from "react-select";
 
 function TaskScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentUsers, setCurrentUsers] = useState([]);
   const [options, setOptions] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [currentDescription, setCurrentDescription] = useState([]);
+
+  const [assignedDate, setAssignedDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescriptions, setTaskDescriptions] = useState([]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const getUsers = async () => {
-    try{
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}staff/get`,{
-        headers: {
-          Authorization: `Bearer ${Cookies.get("access_token")}`,
-        },
-      });
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}staff/get`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        }
+      );
       setCurrentUsers(response.data);
-      const allUsers = response.data.map((user)=>({
-          value: user._id,
-          label: user.staff_name
-      }))
+      const allUsers = response.data.map((user) => ({
+        value: user._id,
+        label: user.staff_name,
+      }));
       setOptions(allUsers);
-    }
-    catch(error){
-      console.log(error)
+    } catch (error) {
+      console.log(error);
     }
   };
 
   const getTasks = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}task_tbl/pending-task`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        }
+      );
+      setTasks(response.data.data);
+      console.log(response.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getUsers();
+    getTasks();
+  }, []);
+
+  const handleUserChange = (selectedOptions) => {
+    setSelectedUsers(selectedOptions || []);
+  };
+
+  const handleAddDescription = () => {
+    setTaskDescriptions([...taskDescriptions, currentDescription]);
+    setCurrentDescription("");
+  }
+
+  const handleRemoveDescription = (index) => {
+    const newDescriptions = [...taskDescriptions];
+    newDescriptions.splice(index, 1);
+    setTaskDescriptions(newDescriptions);
+  }
+
+  const handleSubmit = async (e) => {
+    console.log("Submit");
+    e.preventDefault();
+    if(!assignedDate || !dueDate || !selectedUsers || !taskTitle){
+      alert("All fields are required");
+      return;
+    }
+    const assignedTo = selectedUsers.map((user) => user.value);
+    const startDate = new Date(assignedDate).toISOString();
+    const endDate = new Date(dueDate).toISOString();
+
     try{
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}task_tbl/pending-task`,{
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}task_tbl/add`, {
+        task_assign_to: assignedTo.join(','),
+        task_title: taskTitle,
+        task_assign_date: startDate,
+        task_description: taskDescriptions.join(','),
+        task_due_date: endDate,
+      },{
         headers: {
           Authorization: `Bearer ${Cookies.get("access_token")}`,
         },
-      });
-      setTasks(response.data.data);
-      console.log(response.data.data);
+        withCredentials: true,
+      })
+      // const response = await api.post("task_tbl/add", {
+      //   task_assign_to: assignedTo.join(','),
+      //   task_title: taskTitle,
+      //   task_assign_date: startDate,
+      //   task_description: taskDescriptions.join(','),
+      //   task_due_date: endDate,
+      // })
+      console.log("RES",response.data);
     }
     catch(error){
-      console.log(error)
+      console.log(error);
     }
-  }
-
-  useEffect(()=>{
-    getUsers();
-    getTasks();
-  },[])
+  };
 
   return (
     <div className="overflow-y-scroll h-[calc(100vh-80px)] w-full p-4 bg-gray-100">
       <div className="flex justify-between mb-4 mt-1">
         <h2 className="text-lg font-bold text-gray-800">Task List</h2>
-        <button onClick={openModal} type="submit" class="flex  justify-center rounded-md bg-red-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm ">Create Task</button>
+        <button
+          onClick={openModal}
+          type="submit"
+          class="flex  justify-center rounded-md bg-red-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm "
+        >
+          Create Task
+        </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -68,7 +139,9 @@ function TaskScreen() {
             <img src="/assets/images/task.png" alt="" height="32" width="32" />
           </div>
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-blue-600">20</h2>
+            <h2 className="text-3xl font-bold text-blue-600">
+              {tasks.length}
+            </h2>
             <p className="text-base text-gray-500 font-semibold">Total Task</p>
           </div>
         </div>
@@ -76,33 +149,66 @@ function TaskScreen() {
         {/* Complete Task */}
         <div className="bg-white p-4 rounded-lg shadow flex items-center">
           <div className="w-16 h-16 bg-green-100 text-green-600 flex items-center justify-center rounded-full mr-8 ml-4">
-            <img src="/assets/images/checklist.png" alt="" height="32" width="32" />
+            <img
+              src="/assets/images/checklist.png"
+              alt=""
+              height="32"
+              width="32"
+            />
           </div>
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-green-600">10</h2>
-            <p className="text-base text-gray-500 font-semibold">Complete Task</p>
+            <h2 className="text-3xl font-bold text-green-600">
+              {
+                tasks.filter((task) => task.task_status % 3 === 0).length
+              }
+            </h2>
+            <p className="text-base text-gray-500 font-semibold">
+              Complete Task
+            </p>
           </div>
         </div>
 
         {/* Pending Task */}
         <div className="bg-white p-4 rounded-lg shadow flex items-center">
           <div className="w-16 h-16 bg-yellow-100 text-yellow-600 flex items-center justify-center rounded-full mr-8 ml-4">
-            <img src="/assets/images/pending-tasks.png" alt="" height="32" width="32" />
+            <img
+              src="/assets/images/pending-tasks.png"
+              alt=""
+              height="32"
+              width="32"
+            />
           </div>
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-yellow-600">05</h2>
-            <p className="text-base text-gray-500 font-semibold">Pending Task</p>
+            <h2 className="text-3xl font-bold text-yellow-600">
+              {
+                tasks.filter((task) => task.task_status % 3 === 1).length
+              }
+            </h2>
+            <p className="text-base text-gray-500 font-semibold">
+              Pending Task
+            </p>
           </div>
         </div>
 
         {/* Incomplete Task */}
         <div className="bg-white p-4 rounded-lg shadow flex items-center">
           <div className="w-16 h-16 bg-red-100 text-red-600 flex items-center justify-center rounded-full mr-8 ml-4">
-            <img src="/assets/images/remove.png" alt="" height="30" width="28" />
+            <img
+              src="/assets/images/remove.png"
+              alt=""
+              height="30"
+              width="28"
+            />
           </div>
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-red-600">05</h2>
-            <p className="text-base text-gray-500 font-semibold">Incomplete Task</p>
+            <h2 className="text-3xl font-bold text-red-600">
+              {
+                tasks.filter((task) => task.task_status % 3 === 2).length
+              }
+            </h2>
+            <p className="text-base text-gray-500 font-semibold">
+              Incomplete Task
+            </p>
           </div>
         </div>
       </div>
@@ -141,8 +247,9 @@ function TaskScreen() {
             <h3 className="font-semibold text-lg mb-2">{task.task_title}</h3>
             <p className="text-sm text-gray-600 mb-2">
               {task.task_descriptions.map((description, index) => (
-                <span key={index} className="block mb-2">
+                <span key={index} className="mb-1">
                   {description.desc_name}
+                  <span>, </span>
                 </span>
               ))}
             </p>
@@ -157,7 +264,7 @@ function TaskScreen() {
                   task.assignToNames.map((name, index) => (
                     <span key={index}>
                       {name}
-                      {index < task.assignToNames.length - 1 && ' & '}
+                      {index < task.assignToNames.length - 1 && " & "}
                     </span>
                   ))}
               </span>
@@ -169,7 +276,6 @@ function TaskScreen() {
                 })}
               </span>
             </div>
-
           </div>
         ))}
       </div>
@@ -181,12 +287,12 @@ function TaskScreen() {
             {/* Modal Header */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Add Task</h2>
-             
-              <X className="cursor-pointer"  onClick={closeModal}/>
+
+              <X className="cursor-pointer" onClick={closeModal} />
             </div>
 
             {/* Modal Content */}
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               {/* Date Fields */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -195,6 +301,8 @@ function TaskScreen() {
                   </label>
                   <input
                     type="date"
+                    value={assignedDate}
+                    onChange={(e) => setAssignedDate(e.target.value)}
                     className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
                   />
                 </div>
@@ -204,6 +312,8 @@ function TaskScreen() {
                   </label>
                   <input
                     type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
                     className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
                   />
                 </div>
@@ -211,16 +321,15 @@ function TaskScreen() {
 
               {/* Select User */}
               <div>
-                <label 
-                  className="block text-sm font-semibold mb-1"
-                >
+                <label className="block text-sm font-semibold mb-1">
                   Select User
                 </label>
                 <Select
                   isMulti
-                  name="colors"
                   options={options}
-                  className="basic-multi-select"
+                  value={selectedUsers}
+                  onChange={handleUserChange}
+                  className="basic-multi-select border"
                   classNamePrefix="select"
                 />
               </div>
@@ -232,26 +341,63 @@ function TaskScreen() {
                 </label>
                 <input
                   type="text"
+                  value={taskTitle}
+                  onChange={(e) => setTaskTitle(e.target.value)}
                   placeholder="Enter Task Title"
-                  className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
+                  className="w-full border rounded-lg px-3 py-2"
                 />
               </div>
 
               {/* Description */}
-              <div>
+              <div className="border p-2 rounded-md">
                 <label className="block text-sm font-semibold mb-1">
                   Description
                 </label>
-                <textarea
-                  placeholder="Enter Description"
-                  className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200"
-                  rows="3"
-                ></textarea>
+                <div className="relative w-full">
+                  <input 
+                    placeholder="Task Description"
+                    value={currentDescription}
+                    onChange={(e) => setCurrentDescription(e.target.value)}
+                    className="border-none rounded px-3 py-2 outline-none bg-gray-100 w-[90%] mt-1"
+                  >
+                  </input>
+                  <div className="w-[10%]">
+                    <button
+                      onClick={handleAddDescription}
+                      type="button"
+                      className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 flex items-center justify-center"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <hr className="border-t-1 my-4 border-gray-800" />
+                <div className="p-2 h-24 overflow-y-auto border border-gray-300 rounded-md">
+                  {taskDescriptions.map((description, index) => (
+                    <div 
+                      key={index} 
+                      className="flex justify-between items-start px-1 py-1 space-x-2"
+                    >
+                      <p className="text-base text-gray-900 break-words w-[90%]">
+                        {description}
+                        <hr className="mt-2"/>
+                      </p>
+                      <button 
+                        onClick={handleRemoveDescription}
+                        type="button"
+                        className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 flex items-center justify-center"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Buttons */}
               <div className="flex justify-end space-x-3">
-                 <button
+                <div></div>
+                <button
                   type="submit"
                   className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600"
                 >
@@ -264,7 +410,6 @@ function TaskScreen() {
                 >
                   Cancel
                 </button>
-               
               </div>
             </form>
           </div>
