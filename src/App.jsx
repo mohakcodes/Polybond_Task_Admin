@@ -6,6 +6,7 @@ import ProductionScreen from "./components/common/ProductionScreen";
 import NotfoundScreen from "./components/common/NotfoundScreen";
 import AuthRoute from "./components/AuthRoute";
 import LoginScreen from "./components/common/LoginScreen";
+import CalenderScreen from "./components/common/CalenderScreen";
 
 const router = createBrowserRouter([
   {
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
       { index: true, element: <DashboardScreen /> },
       { path: "task", element: <TaskScreen /> },
       { path: "production", element: <ProductionScreen /> },
+      { path: "calendar", element: <CalenderScreen /> },
     ],
   },
   { path: "/login", element: <LoginScreen /> },
