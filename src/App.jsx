@@ -1,25 +1,28 @@
-import React from 'react'
-import { Routes, Route } from "react-router-dom";
-import DashboardScreen from './components/common/DashboardScreen';
-import TaskScreen from './components/common/TaskScreen';
-import ProductionScreen from './components/common/ProductionScreen';
-import NotfoundScreen from './components/common/NotfoundScreen';
-import AuthRoute from './components/AuthRoute';
-import LoginScreen from './components/common/LoginScreen';
+import React from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import DashboardScreen from "./components/common/DashboardScreen";
+import TaskScreen from "./components/common/TaskScreen";
+import ProductionScreen from "./components/common/ProductionScreen";
+import NotfoundScreen from "./components/common/NotfoundScreen";
+import AuthRoute from "./components/AuthRoute";
+import LoginScreen from "./components/common/LoginScreen";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <AuthRoute />,
+    children: [
+      { index: true, element: <DashboardScreen /> },
+      { path: "task", element: <TaskScreen /> },
+      { path: "production", element: <ProductionScreen /> },
+    ],
+  },
+  { path: "/login", element: <LoginScreen /> },
+  { path: "*", element: <NotfoundScreen /> },
+]);
+
 function App() {
-  return (
-    <>
-      <Routes>
-        <Route element={<AuthRoute />}>
-          <Route index element={<DashboardScreen />} />
-          <Route path="/task" element={<TaskScreen />} />
-          <Route path="/production" element={<ProductionScreen />} />
-        </Route>
-        <Route path="*" element={<NotfoundScreen />} />
-        <Route path="/login" element={<LoginScreen />} />
-      </Routes>
-    </>
-  )
+  return <RouterProvider router={router} />;
 }
 
-export default App
+export default App;
