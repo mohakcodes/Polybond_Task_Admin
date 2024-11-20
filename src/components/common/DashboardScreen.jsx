@@ -148,7 +148,7 @@ function DashboardScreen() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {
-                  tasks.slice(0,3).map((row, index) => (
+                  tasks.slice(0,4).map((row, index) => (
                   <tr key={row._id} className="text-center hover:bg-gray-100 transition duration-200 ease-in-out">
                     <td className="px-4 py-3">{index+1}</td>
                     <td className="px-4 py-3">{row.task_title}</td>

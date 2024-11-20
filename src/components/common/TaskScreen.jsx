@@ -20,7 +20,7 @@ function TaskScreen() {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescriptions, setTaskDescriptions] = useState([]);
-
+  
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
