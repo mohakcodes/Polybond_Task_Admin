@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import api from "../axios/api.js";
 import Swal from "sweetalert2";
 import Select from "react-select";
+import getTasks from "../utils/getTasks.js";
 
 function TaskScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,26 +45,15 @@ function TaskScreen() {
     }
   };
 
-  const getTasks = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}task_tbl/pending-task`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("access_token")}`,
-          },
-        }
-      );
-      setTasks(response.data.data);
-      console.log(response.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const fetchTasks = async () => {
+    const tasks = await getTasks();
+    console.log("Tasks", tasks);
+    setTasks(tasks);
+  }
 
   useEffect(() => {
     getUsers();
-    getTasks();
+    fetchTasks();
   }, []);
 
   const handleUserChange = (selectedOptions) => {
@@ -104,7 +94,7 @@ function TaskScreen() {
               timer: 2000,
               showConfirmButton: false,
             });
-            getTasks(); // Refresh the task list
+            fetchTasks();
         } 
         catch (error) {
             console.error("Error deleting task:", error);
@@ -139,7 +129,7 @@ function TaskScreen() {
       });
       console.log("RES", response.data);
       closeModal();
-      getTasks();
+      await fetchTasks();
       setAssignedDate("");
       setDueDate("");
       setSelectedUsers([]);

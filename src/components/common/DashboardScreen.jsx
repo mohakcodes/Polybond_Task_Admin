@@ -1,9 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import { Link } from "react-router-dom";
+import getTasks from "../utils/getTasks";
 
 function DashboardScreen() {
+
+  const [tasks, setTasks] = useState([]);
+
+  const fetchTasks = async () => {
+    const tasks = await getTasks();
+    setTasks(tasks);
+  }
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
   const dataOrders = {
     labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     datasets: [
@@ -134,23 +147,34 @@ function DashboardScreen() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {[
-                  { id: 1, task_title: 'Task 1', assignToNames: 'Lumesh', task_assign_date: '25 Oct 2024', task_due_date: '26 Nov 2024', status: 'Pending' },
-                  { id: 2, task_title: 'Task 2', assignToNames: 'Sarover', task_assign_date: '25 Oct 2024', task_due_date: '26 Nov 2024', status: 'Pending' },
-                  { id: 3, task_title: 'Task 3', assignToNames: 'Leela', task_assign_date: '25 Oct 2024', task_due_date: '26 Nov 2024', status: 'Incomplete' },
-                  { id: 4, task_title: 'Task 4', assignToNames: 'Kaif', task_assign_date: '25 Oct 2024', task_due_date: '26 Nov 2024', status: 'Pending' },
-                  { id: 5, task_title: 'Task 5', assignToNames: 'Virendra', task_assign_date: '25 Oct 2024', task_due_date: '26 Nov 2024', status: 'Incomplete' },
-                  { id: 6, task_title: 'Task 6', assignToNames: 'Mohak', task_assign_date: '25 Oct 2024', task_due_date: '26 Nov 2024', status: 'Incomplete' },
-                ].map((row, index) => (
-                  <tr key={row.id} className="text-center hover:bg-gray-100 transition duration-200 ease-in-out">
-                    <td className="px-4 py-3">{row.id}</td>
+                {
+                  tasks.slice(0,3).map((row, index) => (
+                  <tr key={row._id} className="text-center hover:bg-gray-100 transition duration-200 ease-in-out">
+                    <td className="px-4 py-3">{index+1}</td>
                     <td className="px-4 py-3">{row.task_title}</td>
-                    <td className="px-4 py-3">{row.assignToNames}</td>
-                    <td className="px-4 py-3">{row.task_assign_date}</td>
-                    <td className="px-4 py-3">{row.task_due_date}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded text-xs ${row.status === 'Completed' ? 'bg-green-100 text-green-600 font-semibold' : row.status === 'Pending' ? 'bg-yellow-100 text-yellow-600 font-semibold' : 'bg-red-100 text-red-600 font-semibold'}`}>
-                        {row.status}
+                      {
+                        row.assignToNames.length === 1 ? row.assignToNames[0] :
+                        `${row.assignToNames[0]} & ${row.assignToNames.length - 1} others`
+                      }
+                    </td>
+                    <td className="px-4 py-3">
+                      {new Date(row.task_assign_date).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-4 py-3">
+                      {new Date(row.task_due_date).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded text-xs ${row.task_status === 0 ? 'bg-green-100 text-green-600 font-semibold' : row.task_status === 1 ? 'bg-yellow-100 text-yellow-600 font-semibold' : 'bg-red-100 text-red-600 font-semibold'}`}>
+                        {row.task_status === 0 ? 'Success' : row.task_status === 1 ? 'Pending' : 'Incomplete'} 
                       </span>
                     </td>
                   </tr>
@@ -159,8 +183,6 @@ function DashboardScreen() {
             </table>
           </div>
         </div>
-
-      
       </div>
     </div>
   );
