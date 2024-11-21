@@ -13,7 +13,7 @@ import Cookies from "js-cookie";
 function Leftsidebar({ isCollapsed, setIsCollapsed }) {
   const dispatch = useDispatch();
   const handleLogout = () => {
-    Cookies.remove("access-token");
+    Cookies.remove("access_token");
     dispatch(logout());
   };
   return (
