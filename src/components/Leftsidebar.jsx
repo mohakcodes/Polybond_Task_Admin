@@ -15,6 +15,7 @@ function Leftsidebar({ isCollapsed, setIsCollapsed }) {
   const handleLogout = () => {
     Cookies.remove("access_token");
     dispatch(logout());
+    
   };
   return (
     <aside
