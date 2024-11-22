@@ -6,17 +6,28 @@ import {
   ShoppingCart,
   Calendar,
 } from "lucide-react";
+
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "./redux/userSlice";
+import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+
 function Leftsidebar({ isCollapsed, setIsCollapsed }) {
+
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     Cookies.remove("access_token");
     dispatch(logout());
+<<<<<<< HEAD
     
+=======
+    navigate("/login");
+>>>>>>> ab26f75 (add: login page navigation)
   };
+
   return (
     <aside
       className={`bg-white border-r border-gray-200 ${
