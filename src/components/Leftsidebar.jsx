@@ -21,11 +21,7 @@ function Leftsidebar({ isCollapsed, setIsCollapsed }) {
   const handleLogout = () => {
     Cookies.remove("access_token");
     dispatch(logout());
-<<<<<<< HEAD
-    
-=======
-    navigate("/login");
->>>>>>> ab26f75 (add: login page navigation)
+    navigate('/login');
   };
 
   return (
